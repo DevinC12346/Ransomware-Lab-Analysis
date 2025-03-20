@@ -59,9 +59,45 @@ Next, I executed a PsTree scan to analyze the parent-child process hierarchy and
 
 ![PStreeScanExeFound](https://github.com/user-attachments/assets/f60e73f4-a2f0-4d8a-8fdc-d3b9b7c2312a)
 
-After finding the executable file I used the grep command on the PID, "2732" to check if it was linked to any other processe. The results of the command displayed a third process called taskdl.exe
+After finding the executable file I used the grep command on the PID, "2732" to check if it was linked to any other processes. The results of the command displayed a third process called taskdl.exe
 
 <img width="951" alt="PsScanGrepped2732" src="https://github.com/user-attachments/assets/73d4b762-124d-4d3c-a917-954f55d3271c" />
 
 Next, I performed a memory dump of the executable associated with PID 2732 using the following command: "python3 vol.py -f infected.vmem windows.psscan --pid 2732 --dump". This operation extracted the process memory and generated an output file named "2732.or4qtckT.exe.0x400000.dmp", allowing for further analysis of the executable’s contents.
 <img width="950" alt="SuccesfulFileDump" src="https://github.com/user-attachments/assets/e6d1fc58-351a-4605-a08d-e2ceb5574fb4" />
+
+After extracting the memory dump, I computed its SHA-256 hash using the following command: "sha256sum 2732.or4qtckT.exe.0x400000.dmp" This generated a unique cryptographic hash of the dumped executable, which I then submitted to VirusTotal to determine potential malicious characteristics.
+
+<img width="632" alt="DumpedFileLookupandHash" src="https://github.com/user-attachments/assets/04f4f5c5-e7f2-4a9a-a786-d0388bde5ca2" />
+
+After submitting the computed SHA-256 hash to VirusTotal, the analysis report indicated that the file was flagged as malicious by 48 security vendors. The identified malware was classified as "WannaCry," a known ransomware variant.
+
+<img width="950" alt="VirusTotalHashScan" src="https://github.com/user-attachments/assets/e1779244-d449-40d3-bb83-b877a0e2ce62" />
+
+After identifying the malware as WannaCry, I conducted further research to gather threat intelligence on its characteristics and behavior. Utilizing open-source intelligence (OSINT), I searched for a comprehensive malware profile and found that Mandiant, a well-established cybersecurity firm, had published a detailed analysis of the ransomware, providing insights into its tactics, techniques, and indicators of compromise (IOCs).
+
+<img width="958" alt="WannaCryMalwareProfile" src="https://github.com/user-attachments/assets/4af949ac-8396-436b-8da2-418a79531553" />
+
+While analyzing the malware profile, I identified the third executable associated with the WannaCry infection. According to the report, this executable functions as a file deletion utility.
+
+<img width="566" alt="FileDeletionTool" src="https://github.com/user-attachments/assets/9043562e-a67f-447d-9854-198878fa0c6f" />
+
+In the report it identifies a public RSA encryption key named "00000000.eky." This key was utilized to encrypt the private decryption key, preventing victims from accessing their encrypted files without the corresponding private key, which is typically held by the attacker.
+
+<img width="632" alt="PublicFileEncoderKey" src="https://github.com/user-attachments/assets/98b1004c-52c2-45e4-89be-4f7cb81961d9" />
+
+# Conclusion 
+
+In this lab, I conducted an in-depth memory forensics investigation on a compromised system infected with WannaCry ransomware. Using Volatility 3, I systematically analyzed the memory dump to identify hidden processes, malicious executables, and encryption artifacts.
+
+Key findings included:
+
+- Detection of the WannaCry ransomware process (@WannaDecryptor) using psscan.
+- Identification of suspicious process relationships via pstree, revealing how the ransomware executed.
+- Extraction of the malicious executable from memory using procdump for further analysis.
+- Calculation of the SHA-256 hash of the dumped malware and submission to VirusTotal, confirming its classification as WannaCry.
+- Discovery of the public RSA encryption key (00000000.eky), which was used to encrypt the private key required for file decryption.
+
+ By leveraging process analysis, memory extraction, and threat intelligence, I was able to reconstruct the attack chain and identify key artifacts essential for further mitigation and response. This lab reinforced the critical role of forensic techniques in cybersecurity and incident response, providing valuable hands-on experience in ransomware investigation and malware analysis.
+
+
